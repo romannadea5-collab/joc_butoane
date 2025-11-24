@@ -17,7 +17,7 @@ void printButton(const string &label) {
 
 void showMainMenu() {
     cout << "\n\n";
-    printButton("Guess Game - Apasa S pentru START");
+    printButton("Guess Game - Apasati S pentru START");
     cout << "\n";
     printButton("Nivel: E=Usor M=Mediu H=Greu");
     cout << "\n";
@@ -59,7 +59,7 @@ int main() {
         if (cmd=='S'||cmd=='s') {
             int secret = rand()%limita + 1;
             int guess = -1;
-            cout << "\n--- GHICESTE NUMARUL (1-" << limita << ") ---\n";
+            cout << "\n--- GHICESTE NUMARUL! Fii activ mereu!  (1-" << limita << ") ---\n";
 
             while (true) {
                 cout << "Numar (0=renunt): ";
