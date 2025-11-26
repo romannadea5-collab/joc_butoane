@@ -1,111 +1,115 @@
 #include <iostream>
-#include <windows.h>
+#include <string>
 #include <cstdlib>
 #include <ctime>
-#include <string>
+#include <thread>
+#include <chrono>
+#include <vector>
 
 using namespace std;
 
-void setColor(int c) { SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), c); }
+const string RESET = "\033[0m";
+const string ALB = "\033[97m";
+const string ROZ = "\033[95m";
+const string FUNDAL_ROZ = "\033[45m";
+const string FUNDAL_ALB = "\033[107m";
+const string FUNDAL_GALBEN = "\033[103m";
+const string STRALUCIRE = "\033[1m";
 
-void typeOut(string s, int speed = 5) {
-    for (char c : s) {
-        cout << c << flush;
-        Sleep(speed);
-    }
+void clearScreen() {
+    cout << "\033[2J\033[H";
 }
 
-void starAnimation() {
-    string stars[4] = {
+void starAnimation(int frames=8) {
+    vector<string> stars = {
         "        *       .       *        .        *     ",
         "   .        *         .      *        .        *",
         " *     .        *        .       *      .      ",
         "      .    *        .       *        .     *   "
     };
 
-    for (int i = 0; i < 6; i++) {
-        setColor(13);
-        cout << "\n\n" << stars[i % 4] << "\n\n";
-        Sleep(150);
-        system("cls");
+    for(int i=0;i<frames;i++){
+        clearScreen();
+        cout << STRALUCIRE << ROZ << "\n\n" << stars[i % stars.size()] << "\n\n" << RESET;
+        this_thread::sleep_for(chrono::milliseconds(150));
     }
 }
-void pixelButton(string text) {
-    setColor(13);
-    cout << "############################################\n";
-    cout << "#                                          #\n#  ";
-    typeOut(text, 1);
-    cout << "\n#                                          #\n";
-    cout << "############################################\n\n";
+
+void printButton(string text) {
+    int width = text.size() + 4; 
+    cout << ROZ << "+";
+    for(int i=0;i<width;i++) cout << "-";
+    cout << "+\n";
+
+    cout << "|" << FUNDAL_ROZ << ALB << "  " << text << "  " << RESET << ROZ << "|\n";
+
+    cout << "+";
+    for(int i=0;i<width;i++) cout << "-";
+    cout << "+\n" << RESET;
 }
 
 void showTitle() {
-    setColor(13);
-    cout <<
-    "#############################################################\n"
-    "#                                                           #\n"
-    "#               💗 JOC-GHICESTE NUMARUL 💗                 #\n"
-    "#                                                           #\n"
-    "#############################################################\n\n";
+    cout << ROZ;
+    cout << "=====================================\n";
+    cout << "         JOC GHICESTE NUMARUL        \n";
+    cout << "=====================================\n\n" << RESET;
 }
 
 void showMenu() {
     showTitle();
-    pixelButton("START GAME   (S)");
-    pixelButton("NIVEL:  E = Usor | M = Mediu | H = Greu");
-    pixelButton("IESIRE        (Q)");
-
-    setColor(15);
-    cout << "Alege optiunea: ";
+    printButton("START GAME");
+    printButton("IESIRE");
+    cout << "Apasa 'S' pentru Start sau 'Q' pentru Iesire\n";
 }
 
 int levelToLimit(char c) {
-    if (c == 'E' || c == 'e') return 10;
-    if (c == 'M' || c == 'm') return 50;
+    if(c=='E'||c=='e') return 10;
+    if(c=='M'||c=='m') return 50;
     return 100;
 }
 
+void printNumberBox(int num) {
+    string text = to_string(num);
+    int width = 5; 
+    int padding = (width - text.size())/2;
+
+    cout << FUNDAL_ALB << ROZ << "+-----+\n";
+    cout << "|";
+    for(int i=0;i<padding;i++) cout << " ";
+    cout << text;
+    for(int i=0;i<width - padding - text.size();i++) cout << " ";
+    cout << "|\n";
+    cout << "+-----+" << RESET << " ";
+}
+
 void startGame(int limita) {
-    system("cls");
-    starAnimation();  
-    setColor(13);
-    typeOut("\n🌙 Ghiceste numarul (1 - " + to_string(limita) + ") 🌙\n\n", 10);
+    starAnimation();
+
+    cout << "\n🌙 Ghiceste numarul intre 1 si " << limita << " 🌙\n";
 
     int secret = rand() % limita + 1;
-    string input;
+    int guess;
 
-    while (true) {
-        setColor(15);
-        cout << "Numar (0 = renunt): ";
-        getline(cin, input);
+    while(true) {
+        cout << "\nNumar (0 = renunt): ";
+        cin >> guess;
 
-        bool valid = true;
-        for (char c : input)
-            if (c < '0' || c > '9') valid = false;
-
-        if (!valid) {
-            cout << "Scrie doar cifre.\n";
-            continue;
-        }
-
-        int guess = stoi(input);
-        if (guess == 0) {
+        if(guess==0) {
             cout << "Ai renuntat.\n";
             break;
         }
 
-        if (guess > secret) {
-            Beep(600, 80);
+        cout << "Numarul tau: ";
+        printNumberBox(guess);
+        cout << "\n";
+
+        if(guess > secret) {
             cout << "Prea mare!\n";
-        }
-        else if (guess < secret) {
-            Beep(400, 80);
+        } else if(guess < secret) {
             cout << "Prea mic!\n";
-        }
-        else {
-            Beep(900, 200);
-            setColor(13);
-            cout << "\n💗💗 FELICITARI!!! AI GHICIT! 💗💗\n\n";
+        } else {
+            cout << FUNDAL_GALBEN << ROZ << STRALUCIRE
+                 << "\n💗💗 FELICITARI!!! AI GHICIT! 💗💗\n" << RESET;
             break;
         }
     }
@@ -113,39 +117,30 @@ void startGame(int limita) {
 
 int main() {
     srand(time(NULL));
-
     char cmd;
-    string input;
     int limita = 100;
 
-    while (true) {
-        system("cls");
+    while(true) {
+        clearScreen();
         showMenu();
 
-        getline(cin, input);
-        if (input.size() == 0) continue;
-        cmd = input[0];
+        cin >> cmd;
 
-        if (cmd == 'Q' || cmd == 'q') {
-            typeOut("\nLa revedere! 💗\n", 10);
+        if(cmd=='Q' || cmd=='q') {
+            cout << "\nLa revedere! 💗\n";
             break;
         }
 
-        if (cmd == 'E' || cmd == 'e' ||
-            cmd == 'M' || cmd == 'm' ||
-            cmd == 'H' || cmd == 'h') {
-            limita = levelToLimit(cmd);
-            cout << "\nNivel schimbat la " << limita << "\n";
-            Sleep(600);
-            continue;
-        }
-
-        if (cmd == 'S' || cmd == 's') {
+        if(cmd=='S' || cmd=='s') {
             startGame(limita);
             cout << "\nApasa ENTER pentru meniu...";
-            getline(cin, input);
+            cin.ignore();
+            cin.get();
+        }
+
+        if(cmd=='E'||cmd=='e'||cmd=='M'||cmd=='m'||cmd=='H'||cmd=='h') {
+            limita = levelToLimit(cmd);
+            cout << "\nNivel schimbat la " << limita << "\n";
         }
     }
-
-    return 0;
 }
